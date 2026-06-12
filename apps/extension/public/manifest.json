@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube AI Tutor",
+  "version": "1.0",
+  "description": "Interactive AI learning platform for YouTube.",
+  "permissions": ["sidePanel", "tabs", "storage"],
+  "host_permissions": ["*://*.youtube.com/*", "http://127.0.0.1:8000/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "action": {
+    "default_title": "Open AI Tutor"
+  }
+}

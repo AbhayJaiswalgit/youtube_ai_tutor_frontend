@@ -1,0 +1,43 @@
+/* packages/ui/ChatBubble.css */
+.chat-message {
+  display: flex;
+  gap: 12px;
+  max-width: 85%;
+  line-height: 1.6;
+  font-size: 14px;
+  margin-bottom: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.chat-message.ai {
+  align-self: flex-start;
+}
+
+.chat-message.user {
+  align-self: flex-end;
+  background-color: #f4f4f4; /* Light mode default */
+  padding: 10px 14px;
+  border-radius: 18px;
+  max-width: 80%;
+  color: #1d1d1f;
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  background-color: #10a37f; /* ChatGPT Green */
+  color: white;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.message-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}

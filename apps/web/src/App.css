@@ -1,0 +1,665 @@
+/* apps/web/src/App.css */
+
+/* ==========================================================================
+   1. DESIGN TOKENS & SYSTEM VARIABLES
+   ========================================================================== */
+:root {
+  /* Global Layout Config */
+  --sidebar-width: 260px;
+  --video-height: 280px;
+  --max-content-width: 840px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Light Theme Palette (Notion/ChatGPT Aesthetic) */
+  --bg-app: #ffffff;
+  --bg-sidebar: #171717;
+  --bg-surface: #f9f9f9;
+  --bg-bubble-ai: #f4f4f4;
+  --bg-bubble-user: #ffffff;
+  --bg-input: #ffffff;
+  
+  --text-main: #212121;
+  --text-muted: #676767;
+  --text-sidebar: #ececf1;
+  --text-inverse: #ffffff;
+
+  --border-main: #e5e5e5;
+  --border-sidebar: #2f2f2f;
+  
+  --brand-primary: #10a37f;
+  --brand-hover: #0d8568;
+  --brand-alpha: rgba(16, 163, 127, 0.1);
+}
+
+[data-theme="dark"] {
+  /* Dark Theme Palette (Linear/ChatGPT Dark Aesthetic) */
+  --bg-app: #212121;
+  --bg-sidebar: #171717;
+  --bg-surface: #2f2f2f;
+  --bg-bubble-ai: #2f2f2f;
+  --bg-bubble-user: transparent;
+  --bg-input: #2f2f2f;
+
+  --text-main: #ececf1;
+  --text-muted: #b4b4b4;
+  --text-sidebar: #ececf1;
+  --text-inverse: #171717;
+
+  --border-main: #373737;
+  --border-sidebar: #2f2f2f;
+
+  --brand-primary: #10a37f;
+  --brand-hover: #13b68f;
+  --brand-alpha: rgba(16, 163, 127, 0.2);
+}
+
+/* ==========================================================================
+   2. MASTER CORE LAYOUTS
+   ========================================================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+  transition: var(--transition-smooth);
+}
+
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ==========================================================================
+   3. SIDEBAR COMPONENT STYLES
+   ========================================================================== */
+.sidebar {
+  width: var(--sidebar-width);
+  background-color: var(--bg-sidebar);
+  color: var(--text-sidebar);
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-sidebar);
+}
+
+.new-chat-btn {
+  background-color: transparent;
+  border: 1px solid var(--border-sidebar);
+  color: var(--text-sidebar);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  transition: var(--transition-smooth);
+}
+
+.new-chat-btn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-input {
+  width: 100%;
+  padding: 10px;
+  margin: 12px 0;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-sidebar);
+  border-radius: var(--radius-sm);
+  color: var(--text-sidebar);
+  font-size: 13px;
+  outline: none;
+}
+
+.sidebar-input:focus {
+  border-color: var(--brand-primary);
+}
+
+.sidebar-action-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: var(--brand-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.sidebar-action-btn:hover {
+  background-color: var(--brand-hover);
+}
+
+.theme-toggle-btn {
+  background: transparent;
+  border: 1px solid var(--border-sidebar);
+  color: var(--text-sidebar);
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  margin-top: 12px;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: var(--transition-smooth);
+}
+
+.theme-toggle-btn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-user-section {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-sidebar);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.user-profile-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.user-avatar-circle {
+  width: 28px;
+  height: 28px;
+  background-color: var(--brand-primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.logout-btn {
+  background: transparent;
+  border: 1px solid var(--border-sidebar);
+  color: var(--text-muted);
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  color: var(--text-sidebar);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* ==========================================================================
+   4. MAIN WORKSPACE & PLAYER STYLES
+   ========================================================================== */
+.main-workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--bg-app);
+}
+
+.video-header {
+  height: var(--video-height);
+  background-color: #000000;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-main);
+  position: relative;
+}
+
+/* ==========================================================================
+   5. INTERACTIVE CHAT ENGINE STYLES
+   ========================================================================== */
+.chat-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chat-container-inner {
+  width: 100%;
+  max-width: var(--max-content-width);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.message-row {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.message-row.user {
+  align-items: flex-end;
+}
+
+.message-row.ai {
+  align-items: flex-start;
+}
+
+/* Custom Citation Source Panel Styles */
+.sources-panel {
+  margin-top: 10px;
+  padding: 12px 16px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-main);
+  border-radius: var(--radius-md);
+  max-width: 90%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+
+.sources-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.citation-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-main);
+}
+
+.timestamp-pill {
+  background-color: var(--brand-primary);
+  color: white;
+  border: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.timestamp-pill:hover {
+  background-color: var(--brand-hover);
+}
+
+/* ==========================================================================
+   6. QUICK ACTIONS & FOOTER STYLES
+   ========================================================================== */
+.quick-actions-container {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: var(--max-content-width);
+  margin: 0 auto 8px auto;
+  padding: 0 16px;
+}
+
+.action-pill-btn {
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-main);
+  color: var(--text-main);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.action-pill-btn:hover:not(:disabled) {
+  background-color: var(--bg-surface);
+  border-color: var(--text-muted);
+}
+
+.action-pill-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.input-footer {
+  padding: 0 16px 24px 16px;
+  background-color: var(--bg-app);
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.input-box {
+  width: 100%;
+  max-width: var(--max-content-width);
+  position: relative;
+}
+
+.input-box input {
+  width: 100%;
+  padding: 14px 48px 14px 16px;
+  border: 1px solid var(--border-main);
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  outline: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  transition: var(--transition-smooth);
+}
+
+.input-box input:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 4px 12px var(--brand-alpha);
+}
+
+.input-box button {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  bottom: 8px;
+  background-color: var(--brand-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  width: 32px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: var(--transition-smooth);
+}
+
+.input-box button:hover:not(:disabled) {
+  background-color: var(--brand-hover);
+}
+
+.input-box button:disabled {
+  opacity: 0.3;
+}
+
+
+
+
+
+/* ==========================================================================
+   7. MODAL & OVERLAY STYLES
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.auth-card {
+  background-color: var(--bg-surface);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid var(--border-main);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.auth-card h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-align: center;
+  color: var(--text-main);
+}
+
+.auth-card p {
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.form-group input {
+  padding: 10px 12px;
+  border: 1px solid var(--border-main);
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  outline: none;
+}
+
+.form-group input:focus {
+  border-color: var(--brand-primary);
+}
+
+.auth-submit-btn {
+  background-color: var(--brand-primary);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: var(--transition-smooth);
+}
+
+.auth-submit-btn:hover {
+  background-color: var(--brand-hover);
+}
+
+.auth-toggle-link {
+  font-size: 13px;
+  color: var(--brand-primary);
+  text-align: center;
+  margin-top: 16px;
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+
+
+
+
+/* ==========================================================================
+   8. MARKDOWN RENDERER STYLES
+   ========================================================================== */
+.markdown-body h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+.markdown-body p {
+  margin-bottom: 12px;
+}
+
+.markdown-body ul, 
+.markdown-body ol {
+  margin-left: 20px;
+  margin-bottom: 16px;
+}
+
+.markdown-body li {
+  margin-bottom: 4px;
+}
+
+.markdown-body strong {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.markdown-body hr {
+  border: none;
+  border-top: 1px solid var(--border-main);
+  margin: 16px 0;
+}
+
+
+/* Dashboard Layout */
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  overflow-y: auto;
+  padding: 40px;
+}
+
+.dashboard-header {
+  max-width: 1000px;
+  margin: 0 auto 30px auto;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-tabs {
+  display: flex;
+  gap: 16px;
+  border-bottom: 1px solid var(--border-color);
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto 24px auto;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 10px 16px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover { color: var(--text-main); }
+.tab-btn.active {
+  color: var(--btn-primary);
+  border-bottom: 2px solid var(--btn-primary);
+}
+
+/* Dashboard Grid & Cards */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.data-card {
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.data-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+/* Leveraging the new backend YouTube metadata! */
+.card-thumbnail {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  background-color: #202123;
+}
+
+.card-content {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.card-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.card-actions {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-danger {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-danger:hover { background: rgba(220, 53, 69, 0.2); }
