@@ -4,9 +4,13 @@ import log from "loglevel";
 // 1. Configure the Logger
 log.setLevel("info"); // Will print info, warn, and error logs
 
+const API_BASE_URL =
+  import.meta.env?.VITE_API_URL ||
+  "https://youtube-ai-tutor-backend-vubx.onrender.com/api";
+
 // 2. Create the Base Axios Instance
 const apiClient = axios.create({
-  baseURL: "https://youtube-ai-tutor-backend-vubx.onrender.com/api", // Your FastAPI URL
+  baseURL: API_BASE_URL, // Your FastAPI URL
   headers: {
     "Content-Type": "application/json",
   },
