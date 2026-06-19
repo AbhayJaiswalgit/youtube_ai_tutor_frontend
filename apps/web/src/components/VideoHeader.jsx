@@ -1,10 +1,17 @@
 // apps/web/src/components/VideoHeader.jsx
 import React, { useEffect, useRef } from "react";
 
-export default function VideoHeader({ videoId, status, playerTime }) {
+export default function VideoHeader({
+  videoId,
+  status,
+  playerTime,
+  isVideoExpanded,
+  onToggleExpanded,
+}) {
   const iframeRef = useRef(null);
 
   // Mentor Note: Listen for playerTime changes and inject a seek command
+  // Also re-seek when layout toggles to restore playback position after component remount
   useEffect(() => {
     if (
       iframeRef.current &&
@@ -34,7 +41,7 @@ export default function VideoHeader({ videoId, status, playerTime }) {
         "*",
       );
     }
-  }, [playerTime]);
+  }, [playerTime, isVideoExpanded]);
 
   return (
     <header className="video-header">
@@ -54,16 +61,30 @@ export default function VideoHeader({ videoId, status, playerTime }) {
 
       {/* Notice we removed 'start=${playerTime}' from the src to prevent reloading */}
       {videoId && (status === "ready" || status === "error") && (
-        <iframe
-          ref={iframeRef}
-          width="100%"
-          height="100%"
-          src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1`}
-          frameBorder="0"
-          allow="autoplay; encrypted-media"
-          allowFullScreen
-          title="YouTube Video Player"
-        ></iframe>
+        <div className="yt-player-container">
+          <iframe
+            ref={iframeRef}
+            width="100%"
+            height="100%"
+            src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1`}
+            frameBorder="0"
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+            title="YouTube Video Player"
+          ></iframe>
+
+          {/* Expand/Collapse Button - Top Left of Video */}
+          <button
+            className="expand-video-btn"
+            onClick={onToggleExpanded}
+            title={isVideoExpanded ? "Exit split view" : "Enable split view"}
+            aria-label={
+              isVideoExpanded ? "Exit split view" : "Enable split view"
+            }
+          >
+            {isVideoExpanded ? "Exit Split Screen" : "Split Screen"}
+          </button>
+        </div>
       )}
     </header>
   );

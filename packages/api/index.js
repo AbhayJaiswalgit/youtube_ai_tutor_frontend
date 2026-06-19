@@ -10,7 +10,8 @@ const API_BASE_URL =
 
 // 2. Create the Base Axios Instance
 const apiClient = axios.create({
-  baseURL: API_BASE_URL, // Your FastAPI URL
+  baseURL: API_BASE_URL, // Your FastAPI URL,
+  timeout: 60000,
   headers: {
     "Content-Type": "application/json",
   },

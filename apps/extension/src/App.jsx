@@ -90,35 +90,90 @@ export default function App() {
     [messages, isTyping],
   );
 
+  // const handleInitializeVideo = async (url, extractedId) => {
+  //   setStatus("processing");
+  //   setMessages([]);
+  //   setSessionId(null);
+
+  //   try {
+  //     await api.processVideo(url);
+
+  //     const pollInterval = setInterval(async () => {
+  //       try {
+  //         const res = await api.getVideoStatus(extractedId);
+  //         if (res.data.processing_status === "completed") {
+  //           clearInterval(pollInterval);
+  //           setStatus("ready");
+  //           // USER FRIENDLY SUCCESS MESSAGE
+  //           setMessages([
+  //             {
+  //               sender: "ai",
+  //               text: "Video is ready! What would you like to know?",
+  //             },
+  //           ]);
+  //         } else if (res.data.processing_status === "failed") {
+  //           clearInterval(pollInterval);
+  //           setStatus("error");
+  //         }
+  //       } catch (err) {}
+  //     }, 2000);
+  //   } catch (error) {
+  //     setStatus("error");
+  //   }
+  // };
+
+  // Find and replace the handleInitializeVideo function inside apps/extension/src/App.jsx
+
   const handleInitializeVideo = async (url, extractedId) => {
     setStatus("processing");
     setMessages([]);
     setSessionId(null);
 
     try {
+      // This call will now safely wait up to 60 seconds if the backend is waking up
       await api.processVideo(url);
 
       const pollInterval = setInterval(async () => {
         try {
           const res = await api.getVideoStatus(extractedId);
+
           if (res.data.processing_status === "completed") {
             clearInterval(pollInterval);
             setStatus("ready");
-            // USER FRIENDLY SUCCESS MESSAGE
             setMessages([
               {
                 sender: "ai",
-                text: "Video is ready! What would you like to know?",
+                text: "Ask anything about the video!",
               },
             ]);
           } else if (res.data.processing_status === "failed") {
             clearInterval(pollInterval);
             setStatus("error");
+            setMessages([
+              {
+                sender: "ai",
+                text: "This video cannot be processed. Please ensure the video has standard closed captions or subtitles available.",
+              },
+            ]);
           }
-        } catch (err) {}
+        } catch (pollError) {
+          // If polling fails mid-way, clear interval and handle error
+          clearInterval(pollInterval);
+          setStatus("error");
+        }
       }, 2000);
     } catch (error) {
+      // CATCHING SUBTITLE PIPELINE ERRORS (400, 404, 422) OR NETWORK LOSS
       setStatus("error");
+      const backendMessage =
+        error.response?.data?.detail || error.response?.data?.error;
+
+      setMessages([
+        {
+          sender: "ai",
+          text: "This video cannot be processed. Please ensure the video has standard closed captions or subtitles available.",
+        },
+      ]);
     }
   };
 

@@ -82,12 +82,12 @@ export default function Sidebar({
   };
 
   return (
-    <aside className="sidebar" style={{ overflowY: "hidden" }}>
+    <aside className="sidebar">
       <button
         style={{
           background: "transparent",
-          border: "1px solid var(--border-color)",
-          color: "var(--text-main)",
+          border: "1px solid var(--border-main)",
+          color: "var(--text-sidebar)",
           padding: "12px",
           borderRadius: "6px",
           cursor: "pointer",
@@ -111,7 +111,7 @@ export default function Sidebar({
             padding: "10px",
             marginBottom: "10px",
             borderRadius: "6px",
-            border: "1px solid var(--border-color)",
+            border: "1px solid var(--border-main)",
             background: "var(--input-bg)",
             color: "var(--text-main)",
             fontSize: "13px",
@@ -186,7 +186,7 @@ export default function Sidebar({
         </div>
       </div> */}
 
-      <div style={{ flex: 1, overflowY: "auto", marginBottom: "20px" }}>
+      <div className="sidebar-history-container">
         <div
           style={{
             fontSize: "11px",
@@ -266,7 +266,7 @@ export default function Sidebar({
           display: "flex",
           flexDirection: "column",
           gap: "10px",
-          borderTop: "1px solid var(--border-color)",
+          borderTop: "1px solid var(--border-main)",
           paddingTop: "16px",
         }}
       >
@@ -344,7 +344,7 @@ export default function Sidebar({
               onClick={onLogout}
               style={{
                 background: "transparent",
-                border: "1px solid var(--border-color)",
+                border: "1px solid var(--border-main)",
                 color: "var(--text-muted)",
                 padding: "6px",
                 borderRadius: "4px",

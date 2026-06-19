@@ -29,6 +29,10 @@ function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const triggerRefresh = () => setRefreshTrigger((prev) => prev + 1);
 
+  // Split-view expanded state
+  const [isVideoExpanded, setIsVideoExpanded] = useState(false);
+  const toggleVideoExpanded = () => setIsVideoExpanded((prev) => !prev);
+
   // Theme state tracking token configuration
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "dark",
@@ -201,15 +205,56 @@ function App() {
     }
   };
 
+  // const handleInitializeVideoPipeline = async (urlToProcess) => {
+  //   const targetUrl = urlToProcess || videoUrl;
+  //   const extractedId = extractYouTubeId(targetUrl);
+  //   if (!extractedId)
+  //     return alert("Please provide a valid YouTube reference link.");
+
+  //   console.log(
+  //     `[Pipeline Initialization] Processing YouTube ID: ${extractedId}`,
+  //   );
+  //   setVideoId(extractedId);
+  //   setStatus("processing");
+  //   setMessages([]);
+  //   setSessionId(null);
+  //   setPlayerTime(0);
+
+  //   try {
+  //     await api.processVideo(targetUrl);
+
+  //     const pollInterval = setInterval(async () => {
+  //       try {
+  //         const res = await api.getVideoStatus(extractedId);
+  //         if (res.data.processing_status === "completed") {
+  //           clearInterval(pollInterval);
+  //           setStatus("ready");
+  //           setMessages([
+  //             {
+  //               sender: "ai",
+  //               text: "Ask anything about the video!",
+  //               citations: [],
+  //             },
+  //           ]);
+  //         } else if (res.data.processing_status === "failed") {
+  //           clearInterval(pollInterval);
+  //           setStatus("error");
+  //         }
+  //       } catch (err) {
+  //         console.error("Status synchronization check failed", err);
+  //       }
+  //     }, 2000);
+  //   } catch (error) {
+  //     setStatus("error");
+  //   }
+  // };
+
   const handleInitializeVideoPipeline = async (urlToProcess) => {
     const targetUrl = urlToProcess || videoUrl;
     const extractedId = extractYouTubeId(targetUrl);
     if (!extractedId)
       return alert("Please provide a valid YouTube reference link.");
 
-    console.log(
-      `[Pipeline Initialization] Processing YouTube ID: ${extractedId}`,
-    );
     setVideoId(extractedId);
     setStatus("processing");
     setMessages([]);
@@ -217,6 +262,8 @@ function App() {
     setPlayerTime(0);
 
     try {
+      // This request will now respect the 60-second cold-start timeout
+      // we configured in our shared Axios instance
       await api.processVideo(targetUrl);
 
       const pollInterval = setInterval(async () => {
@@ -228,20 +275,36 @@ function App() {
             setMessages([
               {
                 sender: "ai",
-                text: "Hello! I have fully mapped this video transcript context. How can I help you learn today?",
+                text: "Ask anything about the video!",
                 citations: [],
               },
             ]);
           } else if (res.data.processing_status === "failed") {
             clearInterval(pollInterval);
             setStatus("error");
+            // Graceful failure if the background worker crashes
+            setMessages([
+              {
+                sender: "ai",
+                text: "This video cannot be processed. Please ensure the video has standard closed captions or subtitles available.",
+                citations: [],
+              },
+            ]);
           }
         } catch (err) {
           console.error("Status synchronization check failed", err);
         }
       }, 2000);
     } catch (error) {
+      // CATCHING EXPLICIT SUPADATA ERRORS (400, 404, 422)
       setStatus("error");
+      setMessages([
+        {
+          sender: "ai",
+          text: "This video cannot be processed. Please ensure the video has standard closed captions or subtitles available.",
+          citations: [],
+        },
+      ]);
     }
   };
 
@@ -476,44 +539,45 @@ function App() {
             Paste any YouTube video link to unlock an interactive AI Tutor.
           </p>
 
-          <div style={{ display: "flex", gap: "10px", width: "100%" }}>
+          {/* --- SEARCH AND INITIALIZE BAR --- */}
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              width: "100%",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <input
               type="text"
-              placeholder="Paste YouTube link..."
+              placeholder="Paste YouTube link here..."
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
-              style={{
-                flex: 1,
-                padding: "16px",
-                borderRadius: "12px",
-                border: "1px solid var(--border-color)",
-                background: "var(--input-bg)",
-                color: "var(--text-main)",
-                fontSize: "16px",
-                outline: "none",
-              }}
               onKeyDown={(e) =>
                 e.key === "Enter" && handleInitializeVideoPipeline()
               }
-            />
-            <button
-              onClick={() => handleInitializeVideoPipeline()}
               style={{
-                background: "var(--btn-primary)",
-                color: "#fff",
-                border: "none",
-                padding: "0 24px",
-                borderRadius: "12px",
+                flex: 1,
+                maxWidth: "500px",
+                padding: "16px",
+                borderRadius: "8px",
+                border: "1px solid var(--border-color)",
+                background: "var(--input-bg)",
+                color: "var(--text-main)",
                 fontSize: "15px",
-                fontWeight: "500",
-                cursor: "pointer",
-                whiteSpace: "nowrap",
+                outline: "none",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
               }}
+            />
+
+            <button
+              className="home-search-btn"
+              onClick={() => handleInitializeVideoPipeline()}
             >
               Initialize →
             </button>
 
-            {/* NEW: Open Library Button on the Idle Screen */}
             {currentUser && (
               <button
                 onClick={() => setStatus("dashboard")}
@@ -521,12 +585,14 @@ function App() {
                   background: "transparent",
                   border: "1px solid var(--border-color)",
                   color: "var(--text-main)",
-                  padding: "0 24px",
-                  borderRadius: "12px",
+                  padding: "0 20px",
+                  height: "52px",
+                  borderRadius: "8px",
                   fontSize: "15px",
                   fontWeight: "500",
                   cursor: "pointer",
-                  whiteSpace: "nowrap",
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
                 📚 Library
@@ -582,7 +648,7 @@ function App() {
 
   // ACTIVE MULTI-COLUMN WORKSPACE PLATFORM VIEW
   return (
-    <div className="app-layout">
+    <div className={`app-layout ${isVideoExpanded ? "video-expanded" : ""}`}>
       <Sidebar
         videoUrl={videoUrl}
         setVideoUrl={setVideoUrl}
@@ -605,33 +671,42 @@ function App() {
         refreshTrigger={refreshTrigger}
       />
 
-      <main className="main-workspace">
-        <VideoHeader
-          videoId={videoId}
-          status={status}
-          playerTime={playerTime}
-        />
+      {/* Stable component tree: VideoHeader always in same position */}
+      <main
+        className={`main-workspace ${isVideoExpanded ? "expanded-workspace" : ""}`}
+      >
+        <div className={`video-pane ${isVideoExpanded ? "expanded" : ""}`}>
+          <VideoHeader
+            videoId={videoId}
+            status={status}
+            playerTime={playerTime}
+            isVideoExpanded={isVideoExpanded}
+            onToggleExpanded={toggleVideoExpanded}
+          />
+        </div>
 
-        <ChatBox
-          messages={messages}
-          isTyping={isTyping}
-          chatEndRef={chatEndRef}
-          onTimestampClick={setPlayerTime}
-        />
+        <div className={`chat-pane ${isVideoExpanded ? "expanded" : ""}`}>
+          <ChatBox
+            messages={messages}
+            isTyping={isTyping}
+            chatEndRef={chatEndRef}
+            onTimestampClick={setPlayerTime}
+          />
 
-        <QuickActions
-          status={status}
-          onGenerateNotes={handleGenerateNotes}
-          onGenerateQuiz={handleGenerateQuiz}
-        />
+          <QuickActions
+            status={status}
+            onGenerateNotes={handleGenerateNotes}
+            onGenerateQuiz={handleGenerateQuiz}
+          />
 
-        <InputFooter
-          inputText={inputText}
-          setInputText={setInputText}
-          onSend={handleSend}
-          status={status}
-          isTyping={isTyping}
-        />
+          <InputFooter
+            inputText={inputText}
+            setInputText={setInputText}
+            onSend={handleSend}
+            status={status}
+            isTyping={isTyping}
+          />
+        </div>
       </main>
 
       <AuthModal
