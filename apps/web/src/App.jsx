@@ -190,11 +190,20 @@ function App() {
       const response = await api.getSessionMessages(pastSessionId);
 
       // 2. Format backend messages for the React UI
-      const formattedMessages = response.data.map((msg) => ({
-        sender: msg.role === "user" ? "user" : "ai",
-        text: msg.content,
-        citations: msg.citations || [],
-      }));
+      const formattedMessages = response.data.map((msg) => {
+        const backendSender = String(msg.sender ?? msg.role ?? "")
+          .trim()
+          .toLowerCase();
+
+        return {
+          sender:
+            backendSender === "user" || backendSender === "human"
+              ? "user"
+              : "ai",
+          text: msg.content,
+          citations: msg.citations || [],
+        };
+      });
 
       setMessages(formattedMessages);
       setStatus("ready");

@@ -4,9 +4,20 @@ import log from "loglevel";
 // 1. Configure the Logger
 log.setLevel("info"); // Will print info, warn, and error logs
 
+// const API_BASE_URL =
+//   import.meta.env?.VITE_API_URL ||
+//   "https://youtube-ai-tutor-backend-vubx.onrender.com/api";
+
+// const API_BASE_URL =
+//   import.meta.env?.VITE_API_URL || "http://127.0.0.1:8000/api";
+
+// This checks if Vite is running in development mode (localhost)
+// If not, it automatically falls back to your Render URL.
 const API_BASE_URL =
   import.meta.env?.VITE_API_URL ||
-  "https://youtube-ai-tutor-backend-vubx.onrender.com/api";
+  (import.meta.env.DEV
+    ? "http://127.0.0.1:8000/api"
+    : "https://youtube-ai-tutor-backend-vubx.onrender.com/api");
 
 // 2. Create the Base Axios Instance
 const apiClient = axios.create({
