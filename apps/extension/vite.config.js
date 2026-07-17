@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: "dist",
+    minify: false, // Add this line to disable minification
     rollupOptions: {
       input: {
         sidepanel: resolve(__dirname, "index.html"),

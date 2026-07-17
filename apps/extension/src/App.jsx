@@ -85,10 +85,9 @@ export default function App() {
     }
   }, [videoId]);
 
-  useEffect(
-    () => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }),
-    [messages, isTyping],
-  );
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
 
   // const handleInitializeVideo = async (url, extractedId) => {
   //   setStatus("processing");
