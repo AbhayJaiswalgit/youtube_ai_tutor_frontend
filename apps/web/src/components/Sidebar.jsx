@@ -16,12 +16,16 @@ export default function Sidebar({
   refreshTrigger,
 }) {
   const [history, setHistory] = useState([]);
+  const normalizeSession = (session) => ({
+    ...session,
+    video_id: session.video_id || session.youtube_id,
+  });
 
   useEffect(() => {
     if (currentUser) {
       api
         .getChatSessions()
-        .then((res) => setHistory(res.data))
+        .then((res) => setHistory((res.data || []).map(normalizeSession)))
         .catch((err) => console.error("Failed to load sidebar history"));
     } else {
       setHistory([]);
@@ -60,7 +64,7 @@ export default function Sidebar({
     if (currentUser) {
       api
         .getChatSessions()
-        .then((res) => setHistory(res.data)) // The backend already sorted it!
+        .then((res) => setHistory((res.data || []).map(normalizeSession))) // The backend already sorted it!
         .catch((err) => console.error("Failed to load sidebar history"));
     } else {
       setHistory([]);

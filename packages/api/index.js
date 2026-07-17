@@ -81,6 +81,8 @@ export const api = {
   // Video Processing
   processVideo: (url) => apiClient.post("/video/process", { url }),
   getVideoStatus: (videoId) => apiClient.get(`/video/${videoId}`),
+  cancelVideoProcessing: (videoId) =>
+    apiClient.post(`/video/${videoId}/cancel`),
 
   // Chat & Generation (Create)
   askQuestion: (data) => apiClient.post("/chat/ask", data),

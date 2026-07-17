@@ -241,6 +241,10 @@ export default function Dashboard({
 
   const [viewerData, setViewerData] = useState(null);
   const [viewerType, setViewerType] = useState(null);
+  const normalizeSession = (session) => ({
+    ...session,
+    video_id: session.video_id || session.youtube_id,
+  });
 
   // Re-fetch data whenever the component loads OR whenever refreshTrigger changes
   useEffect(() => {
@@ -253,7 +257,7 @@ export default function Dashboard({
         ]);
 
         setData({
-          sessions: sessionsRes.data || [],
+          sessions: (sessionsRes.data || []).map(normalizeSession),
           notes: notesRes.data || [],
           quizzes: quizzesRes.data || [],
         });

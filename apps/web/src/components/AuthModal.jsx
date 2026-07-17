@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { api } from "@tutor/api";
 
 export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
-  if (!isOpen) return null;
-
   const [isLoginView, setIsLoginView] = useState(true);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -45,6 +43,8 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
       );
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="modal-overlay">

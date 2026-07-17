@@ -4,7 +4,11 @@
   "version": "1.0",
   "description": "Interactive AI learning platform for YouTube.",
   "permissions": ["sidePanel", "tabs", "storage"],
-  "host_permissions": ["*://*.youtube.com/*", "http://127.0.0.1:8000/*"],
+  "host_permissions": [
+    "*://*.youtube.com/*",
+    "http://127.0.0.1:8000/*",
+    "https://youtube-ai-tutor-backend-vubx.onrender.com/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },

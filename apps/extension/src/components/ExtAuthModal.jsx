@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { api } from "@tutor/api";
 
 export default function ExtAuthModal({ isOpen, onClose, onAuthSuccess }) {
-  if (!isOpen) return null;
-
   const [isLogin, setIsLogin] = useState(true);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -39,6 +37,8 @@ export default function ExtAuthModal({ isOpen, onClose, onAuthSuccess }) {
       setError(err.response?.data?.detail || "Authentication failed.");
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="ext-modal-overlay" onClick={onClose}>

@@ -37,6 +37,99 @@ export default function App() {
   const [sessionId, setSessionId] = useState(null);
 
   const chatEndRef = useRef(null);
+  const pollIntervalRef = useRef(null);
+  const activeProcessingVideoIdRef = useRef(null);
+
+  const clearVideoPoll = () => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+  };
+
+  const cancelActiveProcessing = async (nextVideoId = null) => {
+    const activeVideoId = activeProcessingVideoIdRef.current;
+    clearVideoPoll();
+
+    if (!activeVideoId || activeVideoId === nextVideoId) return;
+
+    activeProcessingVideoIdRef.current = null;
+    try {
+      await api.cancelVideoProcessing(activeVideoId);
+    } catch (error) {
+      console.warn("Failed to cancel previous video processing", error);
+    }
+  };
+
+  async function handleInitializeVideo(url, extractedId) {
+    await cancelActiveProcessing(extractedId);
+    activeProcessingVideoIdRef.current = extractedId;
+
+    setStatus("processing");
+    setMessages([]);
+    setSessionId(null);
+
+    try {
+      // This call will now safely wait up to 60 seconds if the backend is waking up
+      await api.processVideo(url);
+
+      if (activeProcessingVideoIdRef.current !== extractedId) return;
+
+      pollIntervalRef.current = setInterval(async () => {
+        try {
+          if (activeProcessingVideoIdRef.current !== extractedId) return;
+
+          const res = await api.getVideoStatus(extractedId);
+
+          if (res.data.processing_status === "completed") {
+            clearVideoPoll();
+            activeProcessingVideoIdRef.current = null;
+            setStatus("ready");
+            setMessages([
+              {
+                sender: "ai",
+                text: "Ask anything about the video!",
+              },
+            ]);
+          } else if (res.data.processing_status === "failed") {
+            clearVideoPoll();
+            activeProcessingVideoIdRef.current = null;
+            setStatus("error");
+            setMessages([
+              {
+                sender: "ai",
+                text: "This video cannot be processed. Please ensure the video has standard closed captions or subtitles available.",
+              },
+            ]);
+          }
+        } catch (pollError) {
+          // If polling fails mid-way, clear interval and handle error
+          console.error("Video status polling failed", pollError);
+          clearVideoPoll();
+          activeProcessingVideoIdRef.current = null;
+          setStatus("error");
+        }
+      }, 2000);
+    } catch (error) {
+      if (activeProcessingVideoIdRef.current !== extractedId) return;
+
+      clearVideoPoll();
+      activeProcessingVideoIdRef.current = null;
+      // CATCHING SUBTITLE PIPELINE ERRORS (400, 404, 422) OR NETWORK LOSS
+      setStatus("error");
+      const backendMessage =
+        error.response?.data?.detail || error.response?.data?.error;
+      if (backendMessage)
+        console.warn("Video processing failed", backendMessage);
+
+      setMessages([
+        {
+          sender: "ai",
+          text: "This video cannot be processed. Please ensure the video has standard closed captions or subtitles available.",
+        },
+      ]);
+    }
+  }
 
   useEffect(() => {
     if (typeof chrome !== "undefined" && chrome.storage) {
@@ -65,6 +158,7 @@ export default function App() {
             handleInitializeVideo(tab.url, id);
           }
         } else {
+          cancelActiveProcessing(null);
           setVideoId(null);
           setVideoTitle("No YouTube video detected");
           setStatus("idle");
@@ -88,6 +182,18 @@ export default function App() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
+
+  useEffect(() => {
+    return () => {
+      const activeVideoId = activeProcessingVideoIdRef.current;
+      clearVideoPoll();
+      if (activeVideoId) {
+        api.cancelVideoProcessing(activeVideoId).catch((error) => {
+          console.warn("Failed to cancel video processing on unmount", error);
+        });
+      }
+    };
+  }, []);
 
   // const handleInitializeVideo = async (url, extractedId) => {
   //   setStatus("processing");
@@ -120,61 +226,6 @@ export default function App() {
   //     setStatus("error");
   //   }
   // };
-
-  // Find and replace the handleInitializeVideo function inside apps/extension/src/App.jsx
-
-  const handleInitializeVideo = async (url, extractedId) => {
-    setStatus("processing");
-    setMessages([]);
-    setSessionId(null);
-
-    try {
-      // This call will now safely wait up to 60 seconds if the backend is waking up
-      await api.processVideo(url);
-
-      const pollInterval = setInterval(async () => {
-        try {
-          const res = await api.getVideoStatus(extractedId);
-
-          if (res.data.processing_status === "completed") {
-            clearInterval(pollInterval);
-            setStatus("ready");
-            setMessages([
-              {
-                sender: "ai",
-                text: "Ask anything about the video!",
-              },
-            ]);
-          } else if (res.data.processing_status === "failed") {
-            clearInterval(pollInterval);
-            setStatus("error");
-            setMessages([
-              {
-                sender: "ai",
-                text: "This video cannot be processed. Please ensure the video has standard closed captions or subtitles available.",
-              },
-            ]);
-          }
-        } catch (pollError) {
-          // If polling fails mid-way, clear interval and handle error
-          clearInterval(pollInterval);
-          setStatus("error");
-        }
-      }, 2000);
-    } catch (error) {
-      // CATCHING SUBTITLE PIPELINE ERRORS (400, 404, 422) OR NETWORK LOSS
-      setStatus("error");
-      const backendMessage =
-        error.response?.data?.detail || error.response?.data?.error;
-
-      setMessages([
-        {
-          sender: "ai",
-          text: "This video cannot be processed. Please ensure the video has standard closed captions or subtitles available.",
-        },
-      ]);
-    }
-  };
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -332,7 +383,7 @@ export default function App() {
           )}
 
           <a
-            href="http://localhost:5173"
+            href="https://youtube-ai-tutor-frontend-web.vercel.app/"
             target="_blank"
             rel="noreferrer"
             className="ext-link"

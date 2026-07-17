@@ -52,9 +52,45 @@ function App() {
   }, [theme]);
 
   const chatEndRef = useRef(null);
+  const pollIntervalRef = useRef(null);
+  const activeProcessingVideoIdRef = useRef(null);
+
+  const clearVideoPoll = () => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+  };
+
+  const cancelActiveProcessing = async (nextVideoId = null) => {
+    const activeVideoId = activeProcessingVideoIdRef.current;
+    clearVideoPoll();
+
+    if (!activeVideoId || activeVideoId === nextVideoId) return;
+
+    activeProcessingVideoIdRef.current = null;
+    try {
+      await api.cancelVideoProcessing(activeVideoId);
+    } catch (error) {
+      console.warn("Failed to cancel previous video processing", error);
+    }
+  };
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
+
+  useEffect(() => {
+    return () => {
+      const activeVideoId = activeProcessingVideoIdRef.current;
+      clearVideoPoll();
+      if (activeVideoId) {
+        api.cancelVideoProcessing(activeVideoId).catch((error) => {
+          console.warn("Failed to cancel video processing on unmount", error);
+        });
+      }
+    };
+  }, []);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
@@ -180,6 +216,7 @@ function App() {
 
   // --- NEW: Load History Session ---
   const handleLoadSession = async (pastSessionId, pastVideoId) => {
+    await cancelActiveProcessing(null);
     setStatus("processing"); // Show loading state
     setVideoId(pastVideoId);
     setSessionId(pastSessionId);
@@ -264,6 +301,9 @@ function App() {
     if (!extractedId)
       return alert("Please provide a valid YouTube reference link.");
 
+    await cancelActiveProcessing(extractedId);
+    activeProcessingVideoIdRef.current = extractedId;
+
     setVideoId(extractedId);
     setStatus("processing");
     setMessages([]);
@@ -275,11 +315,16 @@ function App() {
       // we configured in our shared Axios instance
       await api.processVideo(targetUrl);
 
-      const pollInterval = setInterval(async () => {
+      if (activeProcessingVideoIdRef.current !== extractedId) return;
+
+      pollIntervalRef.current = setInterval(async () => {
         try {
+          if (activeProcessingVideoIdRef.current !== extractedId) return;
+
           const res = await api.getVideoStatus(extractedId);
           if (res.data.processing_status === "completed") {
-            clearInterval(pollInterval);
+            clearVideoPoll();
+            activeProcessingVideoIdRef.current = null;
             setStatus("ready");
             setMessages([
               {
@@ -289,7 +334,8 @@ function App() {
               },
             ]);
           } else if (res.data.processing_status === "failed") {
-            clearInterval(pollInterval);
+            clearVideoPoll();
+            activeProcessingVideoIdRef.current = null;
             setStatus("error");
             // Graceful failure if the background worker crashes
             setMessages([
@@ -305,6 +351,10 @@ function App() {
         }
       }, 2000);
     } catch (error) {
+      if (activeProcessingVideoIdRef.current !== extractedId) return;
+
+      clearVideoPoll();
+      activeProcessingVideoIdRef.current = null;
       // CATCHING EXPLICIT SUPADATA ERRORS (400, 404, 422)
       setStatus("error");
       setMessages([
@@ -662,7 +712,10 @@ function App() {
         videoUrl={videoUrl}
         setVideoUrl={setVideoUrl}
         onProcessVideo={() => handleInitializeVideoPipeline()}
-        onNewChat={() => setStatus("idle")}
+        onNewChat={() => {
+          cancelActiveProcessing(null);
+          setStatus("idle");
+        }}
         currentUser={currentUser}
         onLogout={() => {
           localStorage.clear();
@@ -674,6 +727,7 @@ function App() {
         toggleTheme={toggleTheme}
         onOpenDashboard={() => {
           if (!currentUser) return setIsAuthModalOpen(true);
+          cancelActiveProcessing(null);
           setStatus("dashboard");
         }}
         onLoadSession={handleLoadSession}
